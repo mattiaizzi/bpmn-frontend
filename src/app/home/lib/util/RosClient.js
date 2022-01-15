@@ -3,6 +3,8 @@ const roslib = window.ROSLIB;
 // instanziamo il client ROS
 const ros = new roslib.Ros();
 
+const Topic = window.ROSLIB.Topic;
+
 // Metodi per collegarsi ai vari eventi
 ros.on('error', function(error) {
 console.log('error');
@@ -18,13 +20,11 @@ console.log('Connection closed.');
 // Connessione con il server avviato in precedenza
 ros.connect('ws://localhost:9090');
 
-// Collegamento al topic
-var topic = new window.ROSLIB.Topic({
-ros : ros,
-name : '/example_topic',
-messageType : 'std_msgs/String'
-});
+let allTopics =  []
+const setTopics = (topics) => {
+    allTopics = topics || [];
+}
 
 export {
-    ros, topic
+    ros, Topic, allTopics, setTopics
 }

@@ -1,5 +1,6 @@
 import { Button, Paper } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 import axios, { AxiosError } from 'axios';
 import { makeStyles } from '@mui/styles';
 import { useQuery, useQueryClient, useMutation } from 'react-query';
@@ -8,6 +9,7 @@ import { deleteTopic, getTopics } from '../../api/topic.api';
 import { Topic } from '../../models/topic';
 import TopicTable from './components/topic-table/topic-table';
 import { useEffect } from 'react';
+import { setTopics } from '../../../home/lib/util/RosClient';
 
 const useStyles = makeStyles({
     root: {
@@ -57,7 +59,9 @@ const TopicList = () => {
         });
     }
 
-
+    const reloadTopics = () => {
+        setTopics(topics);
+    }
 
     return (
         <Paper className={classes.root}>
@@ -71,6 +75,16 @@ const TopicList = () => {
                     startIcon={<AddIcon />}
                 >
                     AGGIUNGI
+                </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    className={classes.button}
+                    onClick={reloadTopics}
+                    startIcon={<AutorenewIcon />}
+                >
+                    CARICA TOPICS
                 </Button>
             </div>
             {topics.length === 0 ? (

@@ -1,4 +1,4 @@
-import { topic } from '../../util/RosClient';
+import { ros, Topic, allTopics } from '../../util/RosClient';
 import {
   isMessageFlow,
   isSequenceFlow
@@ -38,16 +38,38 @@ ActivityBehavior.prototype.signal = function(context) {
 ActivityBehavior.prototype.enter = function(context) {
 
   const {
-    element
+    element,
+    scope,
   } = context;
 
+  const pool = scope.parent.element;
+  let prefix = '';
+  if(pool && pool.type === 'bpmn:Participant') {
+    prefix = `/${pool.businessObject.name}`;
+  }
+
+  const availableTopics = allTopics.reduce((obj, topic) => ({
+    ...obj,
+    [topic.key]: new Topic({
+      ros : ros,
+      name : `${prefix}${topic.name}` ,
+      messageType : topic.messageType,
+      })
+  }), {});
+
+  console.log(availableTopics)
+
   if (element.businessObject && element.businessObject.script) {
-    const args = 'topic';
+    const args = 'topics';
     const body = element.businessObject.script;
 
     const fn = new Function(args, body);
-    // si rende disponibile topic all'interno dello script
-    fn(topic);
+
+    try {
+      const result = fn(availableTopics);
+    } catch (error) {
+      console.error(`Errore durante l'esecuzione dello script ${body}`, error);
+    }
   }
 
   const {

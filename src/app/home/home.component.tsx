@@ -2,25 +2,40 @@ import { useEffect, useState } from "react";
 import InputFile from "../components/input-file/input-file.components";
 import TokenSimulationModule from './lib/viewer';
 import React from "react";
+import { Button, Grid } from "@mui/material";
 
 function getFile(file: File) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsText(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
+        const reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
     });
-  }
+}
 const Home = () => {
     const [diagram, setDiagram] = useState();
-
+    const [file, setFile] = useState<File | undefined>();
     const handleChange = (file: File) => {
+        setFile(file);
         getFile(file).then((xml: any) => setDiagram(xml));
     }
-    return <>
-        <InputFile label="Carica diagramma BPMN" onChange={handleChange} />
-        { diagram && <Viewer diagram={diagram}/>}
-    </>
+
+    const diagramSection = diagram ? (<>
+        <Grid item xs={12}>
+            {file && file.name}
+        </Grid>
+        <Grid item xs={12}>
+            <Viewer diagram={diagram} />
+        </Grid>
+    </>) : null;
+
+    return <Grid container spacing={1}>
+        <Grid item xs={12}>
+            <InputFile label="Carica diagramma BPMN" onChange={handleChange} />
+        </Grid>
+        {diagramSection}
+
+    </Grid>
 };
 
 const BpmnViewer = require('bpmn-js').default;
@@ -36,10 +51,11 @@ const ExampleModule = {
 };
 
 
-class Viewer extends React.Component<{diagram: string}> {
+class Viewer extends React.Component<{ diagram: string }> {
     viewer;
     generateId;
     diagramXML;
+    _mounted = false;
     constructor(props: any) {
         super(props);
         this.viewer = new BpmnViewer({
@@ -57,39 +73,37 @@ class Viewer extends React.Component<{diagram: string}> {
 
     render() {
         return <>
-            <div id={this.generateId} style={{display: "none"}}/>
-            <button onClick={() => { document.getElementById('play-this')?.click();}}>avvia</button>
+            <div id={this.generateId} style={{ display: "none" }} />
+            <Button onClick={() => { document.getElementById('play-this')?.click(); }}>Avvia simulazione</Button>
         </>
     }
+
+    componentWillUnmount() {
+        this._mounted = false;
+    }
+
+    componentDidUpdate(prevProps: any) {
+        // import function
+        function importXML(xml: any, Viewer: any) {
+            Viewer.importXML(xml).then((d: any) => console.log('init', xml));
+        }
+
+        if (prevProps.diagram !== this.props.diagram) {
+            this.diagramXML = this.props.diagram;
+            if (this.diagramXML && this._mounted) {
+                this.viewer.attachTo("#" + this.generateId);
+                importXML(this.diagramXML, this.viewer);
+            }
+        }
+    }
+
     componentDidMount() {
+        this._mounted = true;
         this.viewer.attachTo("#" + this.generateId);
 
         // import function
         function importXML(xml: any, Viewer: any) {
-            // import diagram
-            Viewer.importXML(xml, function (err: any) {
-                if (err) {
-                    return console.error("could not import BPMN 2.0 diagram", err);
-                }
-
-                var canvas = Viewer.get("canvas"),
-                    overlays = Viewer.get("overlays");
-
-                // zoom to fit full viewport
-                canvas.zoom("fit-viewport");
-
-                // attach an overlay to a node
-                overlays.add("SCAN_OK", "note", {
-                    position: {
-                        bottom: 0,
-                        right: 0
-                    },
-                    html: '<div class="diagram-note">Mixed up the labels?</div>'
-                });
-
-                // add marker
-                canvas.addMarker("SCAN_OK", "needs-discussion");
-            });
+            Viewer.importXML(xml).then((d: any) => console.log('init', xml));
         }
 
         importXML(this.diagramXML, this.viewer);
