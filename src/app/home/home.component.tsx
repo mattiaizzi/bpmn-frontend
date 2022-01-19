@@ -3,6 +3,8 @@ import InputFile from "../components/input-file/input-file.components";
 import TokenSimulationModule from './lib/viewer';
 import React from "react";
 import { Button, Grid } from "@mui/material";
+import { clearSubscriptions } from "./lib/util/RosClient";
+import TopicHandler from "./components/topic-handler.component";
 
 function getFile(file: File) {
     return new Promise((resolve, reject) => {
@@ -15,7 +17,11 @@ function getFile(file: File) {
 const Home = () => {
     const [diagram, setDiagram] = useState();
     const [file, setFile] = useState<File | undefined>();
+
+    useEffect(() => () => clearSubscriptions(), []);
+
     const handleChange = (file: File) => {
+        clearSubscriptions();
         setFile(file);
         getFile(file).then((xml: any) => setDiagram(xml));
     }
@@ -29,12 +35,14 @@ const Home = () => {
         </Grid>
     </>) : null;
 
-    return <Grid container spacing={1}>
+    return <Grid container spacing={4}>
         <Grid item xs={12}>
             <InputFile label="Carica diagramma BPMN" onChange={handleChange} />
         </Grid>
-        {diagramSection}
-
+        <Grid item xs={12}>
+            {diagramSection}
+        </Grid>
+        <TopicHandler />
     </Grid>
 };
 

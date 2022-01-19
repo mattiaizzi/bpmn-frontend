@@ -1,4 +1,4 @@
-import { ros, Topic, allTopics } from '../../util/RosClient';
+import { ros, Topic, allTopics, topicInstances, addTopicInstances } from '../../util/RosClient';
 import {
   isMessageFlow,
   isSequenceFlow
@@ -44,20 +44,24 @@ ActivityBehavior.prototype.enter = function(context) {
 
   const pool = scope.parent.element;
   let prefix = '';
+  let poolKey = null;
   if(pool && pool.type === 'bpmn:Participant') {
     prefix = `/${pool.businessObject.name}`;
+    poolKey = pool.businessObject.name;
   }
 
-  const availableTopics = allTopics.reduce((obj, topic) => ({
-    ...obj,
-    [topic.key]: new Topic({
-      ros : ros,
-      name : `${prefix}${topic.name}` ,
-      messageType : topic.messageType,
+  const availableTopics = allTopics.reduce((obj, topic) => {
+    return {
+      ...obj,
+      [topic.key]: new Topic({
+        ros: ros,
+        name: `${prefix}${topic.name}`,
+        messageType: topic.messageType,
       })
-  }), {});
+    }
+  }, topicInstances);
 
-  console.log(availableTopics)
+  addTopicInstances(Object.values(availableTopics));
 
   if (element.businessObject && element.businessObject.script) {
     const args = 'topics';

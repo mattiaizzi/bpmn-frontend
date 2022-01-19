@@ -5,11 +5,13 @@ import {
     QueryClientProvider,
 } from 'react-query';
 import { Suspense } from "react";
-import { createTheme } from "@mui/material";
-import { ThemeProvider } from "@emotion/react";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+declare module '@mui/material/styles' { }
+
+const theme = createTheme();
 
 const queryClient = new QueryClient();
-const theme = createTheme();
 
 const App = () => (
     <ThemeProvider theme={theme}>
