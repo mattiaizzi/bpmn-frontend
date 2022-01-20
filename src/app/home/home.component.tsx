@@ -3,8 +3,11 @@ import InputFile from "../components/input-file/input-file.components";
 import TokenSimulationModule from './lib/viewer';
 import React from "react";
 import { Button, Grid } from "@mui/material";
-import { clearSubscriptions } from "./lib/util/RosClient";
+import { clearSubscriptions, setTopics } from "./lib/util/RosClient";
 import TopicHandler from "./components/topic-handler.component";
+import { useQuery } from "react-query";
+import { Topic } from "../topics/models/topic";
+import { getTopics } from "../topics/api/topic.api";
 
 function getFile(file: File) {
     return new Promise((resolve, reject) => {
@@ -18,7 +21,17 @@ const Home = () => {
     const [diagram, setDiagram] = useState();
     const [file, setFile] = useState<File | undefined>();
 
+    const { data: topics = [], refetch: fetchTopics } = useQuery<Topic[], Error>('getTopics', getTopics, {
+        enabled: true,
+        initialData: [],
+    });
+
+    useEffect(() => {
+        setTopics(topics);
+    }, [topics])
+
     useEffect(() => () => clearSubscriptions(), []);
+
 
     const handleChange = (file: File) => {
         clearSubscriptions();

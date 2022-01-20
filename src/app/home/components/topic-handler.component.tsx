@@ -7,6 +7,7 @@ import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import { Theme } from '@mui/material/styles';
 import { useForm } from "react-hook-form";
 import { ros, Topic } from "../lib/util/RosClient";
+import { DateTime } from "luxon";
 
 const TopicHandler = () => {
     const [topics, setTopics] = useState<{ name: string, ref: any }[]>([]);
@@ -112,7 +113,8 @@ const TopicCard: React.FC<
 
     useEffect(() => {
         topic.ref.subscribe(function (message: any) {
-            setMessages((old: any) => [...old, message?.data]);
+            const time = DateTime.now().toFormat("yyyy-mm-dd HH:MM:ss");
+            setMessages((old: any) => [...old, {value: message?.data, time }]);
         });
     }, [])
 
@@ -123,6 +125,7 @@ const TopicCard: React.FC<
     const sendMessage = () => {
         if (message) {
             topic.ref.publish({ data: message });
+            setMessage('');
         }
     }
     return (
@@ -146,7 +149,7 @@ const TopicCard: React.FC<
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <Button variant="outlined" color="primary">
+                            <Button variant="outlined" color="primary" onClick={sendMessage}>
                                 Invia
                             </Button>
                         </Grid>
@@ -169,9 +172,11 @@ const TopicCard: React.FC<
             </CardActions>
             <Collapse in={expanded} timeout="auto" unmountOnExit>
                 <CardContent>
-                    {messages.map((message: any) => (<Typography key={message} variant="body1">
-                        {message}
-                    </Typography>))
+                    {messages.map((message: any, index: any) => {
+                        return (<Typography key={index + message.time} variant="body1">
+                            {message.time} - {message.value}
+                        </Typography>)
+                    })
                     }
                 </CardContent>
             </Collapse>
@@ -180,4 +185,3 @@ const TopicCard: React.FC<
 }
 
 export default TopicHandler;
-
