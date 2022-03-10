@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CardActions from '@mui/material/CardActions';
-import IconButton, { IconButtonProps } from '@mui/material/IconButton';
+import IconButton from '@mui/material/IconButton';
 import { Theme } from '@mui/material/styles';
 import { useForm } from "react-hook-form";
 import { ros, Topic } from "../lib/util/RosClient";
@@ -38,7 +38,7 @@ const TopicHandler = () => {
 
     const name = register('name', {
         required: 'Required',
-        validate: (value) => !topics.some(t => t.name = value),
+        validate: (value) => !topics.some(t => t.name === value),
     });
 
     const messageType = register('messageType', {
@@ -94,8 +94,8 @@ const TopicHandler = () => {
                     Subscribe
                 </Button>
             </Grid>
-            <Grid item xs={12} >
-                {topics.map(t => <TopicCard key={t.name} topic={t} onDelete={handleDelete} />)}
+            <Grid container item xs={12} spacing={2}>
+                {topics.map(t => <Grid item xs={12} md={3}><TopicCard key={t.name} topic={t} onDelete={handleDelete} /></Grid>)}
             </Grid>
         </>
     );
@@ -114,7 +114,7 @@ const TopicCard: React.FC<
     useEffect(() => {
         topic.ref.subscribe(function (message: any) {
             const time = DateTime.now().toFormat("yyyy-mm-dd HH:MM:ss");
-            setMessages((old: any) => [...old, {value: message?.data, time }]);
+            setMessages((old: any) => [...old, { value: message?.data, time }]);
         });
     }, [])
 
